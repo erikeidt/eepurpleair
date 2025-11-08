@@ -1,0 +1,43 @@
+
+rest:
+  - resource: "http://192.168.68.107/json?live=true"
+    method: GET
+    verify_ssl: false
+    timeout: 60
+    scan_interval: 90
+    sensor:
+      - name: "PA Air Quality"
+        unique_id: "pa_air_quality"
+        device_class: aqi 
+        state_class: measurement
+        value_template: >-
+          {% set q1 = value_json['pm2.5_aqi'] | float %}
+          {% set q2 = value_json['pm2.5_aqi_b'] | float %}
+          {{ (q1 + q2) / 2 }}
+      - name: "PA Air Temp (raw)"
+        unique_id: "pa_air_temp_raw"
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°F"
+        value_template: "{{ value_json.current_temp_f | float }}" 
+      - name: "PA Air Temp"
+        unique_id: "pa_air_temp"
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°F"
+        value_template: >-
+          {% set t = value_json.current_temp_f | float %} 
+          {{ 
+            t * 1.0227 - (t-44)*0.37
+              if t > 60 else t
+          }}
+      - name: "PA Humidity"
+        unique_id: "pa_humidity"
+        value_template: "{{ value_json.current_humidity | float }}"
+      - name: "PA Dewpoint"
+        unique_id: "pa_dewpoint"
+        device_class: humidity
+        state_class: measurement
+        unit_of_measurement: "%" 
+        value_template: "{{ value_json.current_dewpoint_f | float }}"
+
